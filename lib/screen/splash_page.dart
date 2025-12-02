@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'welcome_screen.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
