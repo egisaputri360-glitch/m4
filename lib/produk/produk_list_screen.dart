@@ -1,4 +1,4 @@
-// lib/screens/product_list_screen.dart → FINAL + SEMUA KATEGORI + CARD OTOMATIS!
+// lib/screens/product_list_screen.dart → FINAL + POPUP HAPUS + SUDAH DI-FIX ERROR!
 import 'package:flutter/material.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -9,25 +9,23 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  String selectedCategory = 'Hairclip'; // default sesuai gambar terakhirmu
+  String selectedCategory = 'Hairclip';
+  int? deletingIndex;
 
-  final List<Map<String, dynamic>> allProducts = const [
-    // === POPMART → gambar bulat besar di tengah ===
+  // HAPUS "const" DI SINI BIAR BISA DI-EDIT/HAPUS!
+  List<Map<String, dynamic>> allProducts = [
     {'image': 'assets/products/hacipupu_aries.png',  'name': 'Hacipupu Aries',    'price': 200000, 'stock': 12, 'category': 'Popmart'},
     {'image': 'assets/products/labubu.png',         'name': 'Labubu Soymilk',    'price': 245000, 'stock': 15, 'category': 'Popmart'},
 
-    // === BRACELET → gambar persegi atas ===
     {'image': 'assets/products/bracelet_blacklove.png', 'name': 'Bracelet Blacklove', 'price': 25000, 'stock': 22, 'category': 'Bracelet'},
     {'image': 'assets/products/bracelet_butterfly.png', 'name': 'Bracelet Butterfly', 'price': 34000, 'stock': 12, 'category': 'Bracelet'},
     {'image': 'assets/products/bracelet_straw.png',     'name': 'Bracelet Straw',     'price': 45000, 'stock': 2,  'category': 'Bracelet'},
 
-    // === HAIRCLIP → gambar persegi atas (sama seperti Bracelet) ===
     {'image': 'assets/products/hairclip_cherry.png',    'name': 'Hairclip Cherry',    'price': 25000, 'stock': 10, 'category': 'Hairclip'},
     {'image': 'assets/products/hairclip_flowers.png',  'name': 'Hairclip Flowers',   'price': 32000, 'stock': 11, 'category': 'Hairclip'},
     {'image': 'assets/products/hairclip_starlet.png',  'name': 'Hairclip Starlet',   'price': 24000, 'stock': 15, 'category': 'Hairclip'},
     {'image': 'assets/products/hairclip_straw.png',    'name': 'Hairclip Straw',     'price': 33000, 'stock': 14, 'category': 'Hairclip'},
 
-    // === LAINNYA (jika mau tambah nanti) ===
     {'image': 'assets/products/necklace.png',  'name': 'Blackspider Necklace', 'price': 55000, 'stock': 10, 'category': 'Necklace'},
     {'image': 'assets/products/keychain.png',  'name': 'Photo Keychain',       'price': 65000, 'stock': 15, 'category': 'Keychain'},
   ];
@@ -56,7 +54,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
       body: Column(
         children: [
-          // SEARCH BAR
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
             child: TextField(
@@ -72,7 +69,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
 
-          // KATEGORI (bisa diklik & aktif pink)
           SizedBox(
             height: 100,
             child: ListView(
@@ -91,29 +87,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
           const SizedBox(height: 20),
 
-          // GRID PRODUK → CARD OTOMATIS BERUBAH SESUAI KATEGORI!
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.76,
-                crossAxisSpacing: 18,
-                mainAxisSpacing: 18,
-              ),
-              itemCount: filteredProducts.length,
-              itemBuilder: (_, i) {
-                final p = filteredProducts[i];
+            child: Stack(
+              children: [
+                GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.76,
+                    crossAxisSpacing: 18,
+                    mainAxisSpacing: 18,
+                  ),
+                  itemCount: filteredProducts.length,
+                  itemBuilder: (_, i) {
+                    final p = filteredProducts[i];
+                    if (p['category'] == 'Popmart') {
+                      return _popmartCard(p, i);
+                    } else {
+                      return _accessoryCard(p, i);
+                    }
+                  },
+                ),
 
-                // Popmart → bulat besar tengah
-                if (p['category'] == 'Popmart') {
-                  return _popmartCard(p);
-                }
-                // Semua aksesoris (Bracelet, Hairclip, Necklace, dll) → persegi atas
-                else {
-                  return _accessoryCard(p);
-                }
-              },
+                if (deletingIndex != null)
+                  _deleteConfirmationDialog(filteredProducts[deletingIndex!]),
+              ],
             ),
           ),
         ],
@@ -126,7 +124,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  // KATEGORI BUTTON
   Widget _categoryButton(String label, String icon) {
     bool active = selectedCategory == label;
     return Padding(
@@ -152,8 +149,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  // CARD POPMART → bulat besar di tengah
-  Widget _popmartCard(Map<String, dynamic> p) {
+  Widget _popmartCard(Map<String, dynamic> p, int index) {
     return Container(
       decoration: BoxDecoration(color: const Color(0xFFF9F9F9), borderRadius: BorderRadius.circular(26), border: Border.all(color: const Color(0xFFE5E5E5))),
       child: Column(children: [
@@ -169,15 +165,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
           const SizedBox(width: 20),
           const Icon(Icons.edit_outlined, size: 20),
           const SizedBox(width: 12),
-          const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+          GestureDetector(
+            onTap: () => setState(() => deletingIndex = index),
+            child: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+          ),
         ]),
         const SizedBox(height: 10),
       ]),
     );
   }
 
-  // CARD AKSESORIS (Bracelet, Hairclip, Necklace, dll) → gambar persegi atas
-  Widget _accessoryCard(Map<String, dynamic> p) {
+  Widget _accessoryCard(Map<String, dynamic> p, int index) {
     return Container(
       decoration: BoxDecoration(color: const Color(0xFFF8F8F8), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE5E5E5), width: 1)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -197,12 +195,78 @@ class _ProductListScreenState extends State<ProductListScreen> {
               const Spacer(),
               const Icon(Icons.edit_outlined, size: 20, color: Colors.black54),
               const SizedBox(width: 12),
-              const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+              GestureDetector(
+                onTap: () => setState(() => deletingIndex = index),
+                child: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+              ),
             ]),
           ]),
         ),
         const SizedBox(height: 12),
       ]),
+    );
+  }
+
+  // POPUP HAPUS – SUDAH DIPERBAIKI BIAR BISA HAPUS DARI allProducts!
+  Widget _deleteConfirmationDialog(Map<String, dynamic> product) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 30),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFD6E8),
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(product['image'], height: 130, width: 130, fit: BoxFit.cover),
+              ),
+              const SizedBox(height: 20),
+              Text(product['name'], style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+              Text('Rp ${product['price'].toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')},-', style: const TextStyle(fontSize: 16, color: Colors.black54)),
+              const SizedBox(height: 20),
+              const Text('Kamu yakin mau menghapus produk ini?', textAlign: TextAlign.center, style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => setState(() => deletingIndex = null),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: const Text('Batal', style: TextStyle(fontSize: 17, color: Colors.white)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        allProducts.removeAt(deletingIndex!);  // INI YANG DIPERBAIKI!
+                        deletingIndex = null;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Produk berhasil dihapus!'), backgroundColor: Colors.green),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: const Text('Ya', style: TextStyle(fontSize: 17, color: Colors.white)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
