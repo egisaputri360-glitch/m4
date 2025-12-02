@@ -1,7 +1,8 @@
 // lib/screens/splash_page.dart  (atau tetap di file kamu sekarang)
 import 'package:flutter/material.dart';
+import 'package:krpl/produk/dashboard_produk.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'home_screen.dart';
+import 'dashboard.dart';
 import 'login_screen.dart';
 import 'welcome_screen.dart';
 

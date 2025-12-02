@@ -1,9 +1,10 @@
 // lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:krpl/produk/dashboard_produk.dart';
 import 'package:krpl/providers/auth_provider.dart';
 import 'signin_screen.dart';
-import 'home_screen.dart';
+import 'dashboard.dart';
 
 class LoginScreen extends ConsumerWidget {
   LoginScreen({super.key});

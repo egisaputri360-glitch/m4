@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:krpl/produk/dashboard_produk.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screen/login_screen.dart';
-import 'screen/home_screen.dart';
+import 'screen/dashboard.dart';
 import 'screen/splash_page.dart';
 
 void main() async {
